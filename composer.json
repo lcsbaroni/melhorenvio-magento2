@@ -1,0 +1,18 @@
+{
+    "name": "lcsbaroni/melhorenvio-magento2",
+    "description": "Modulo melhor envios magento 2",
+    "type": "magento2-module",
+    "version": "0.0.1",
+    "require": {
+        "php": "~7.0.0"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Lb\\MelhorEnvios\\": ""
+        }
+    },
+    "minimum-stability": "dev"
+}
