@@ -136,14 +136,16 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
     protected function _createDimensions(RateRequest $request)
     {
         $volume = 0;
-        foreach($request->getAllItems() as $item) {
+        $items = $this->getAllItems($request->getAllItems());
+        foreach($items as $item) {
+            $qty = $item->getQty() ?: 1;
             $item = $item->getProduct();
 
             $volume += (
                 $this->_getShippingDimension($item, 'height') *
                 $this->_getShippingDimension($item, 'width') *
                 $this->_getShippingDimension($item, 'length')
-            ) * $item->getQty();
+            ) * $qty;
         }
 
         $root_cubic = round(pow($volume, (1/3)));
@@ -158,6 +160,38 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
             "height" => $height,
             "length" => $length
         ];
+    }
+
+    /**
+     * Return items for further shipment rate evaluation. We need to pass children of a bundle instead passing the
+     * bundle itself, otherwise we may not get a rate at all (e.g. when total weight of a bundle exceeds max weight
+     * despite each item by itself is not)
+     *
+     * @return array
+     */
+    protected function getAllItems($allItems)
+    {
+        $items = [];
+        foreach ($allItems as $item) {
+            /* @var $item Mage_Sales_Model_Quote_Item */
+            if ($item->getProduct()->isVirtual() || $item->getParentItem()) {
+                // Don't process children here - we will process (or already have processed) them below
+                continue;
+            }
+
+            if ($item->getHasChildren() && $item->isShipSeparately()) {
+                foreach ($item->getChildren() as $child) {
+                    if (!$child->getFreeShipping() && !$child->getProduct()->isVirtual()) {
+                        $items[] = $child;
+                    }
+                }
+            } else {
+                // Ship together - count compound item as one solid
+                $items[] = $item;
+            }
+        }
+
+        return $items;
     }
 
     /**
