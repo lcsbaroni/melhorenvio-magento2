@@ -113,10 +113,13 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
             $method->setCarrierTitle($this->getConfigData('name'));
 
             $method->setMethod($carrier->company->name . "_" . $carrier->id);
-            $delivery_time = $this->getConfigData('add_days') + $carrier->delivery_time;
-
-            $description = $carrier->company->name . " " .$carrier->name
-            . sprintf($this->getConfigData('text_days'), $delivery_time);
+            $delivery_time = 0;
+            $description = $carrier->company->name . " " .$carrier->name;
+            if (property_exists($carrier, 'delivery_time')) {
+              $delivery_time = $this->getConfigData('add_days') + $carrier->delivery_time;
+              $description = $carrier->company->name . " " .$carrier->name
+              . sprintf($this->getConfigData('text_days'), $delivery_time);
+            }
             $method->setMethodTitle($description);
 
             $amount = $carrier->price;
