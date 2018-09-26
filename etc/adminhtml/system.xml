@@ -16,7 +16,6 @@
                 </field>
                 <field id="attributesmapping" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Product attributes mapping</label>
-                    <comment>To manage the status available go to System > Order Statuses</comment>
                     <frontend_model>Lb\MelhorEnvios\Block\Adminhtml\System\Config\Fieldset\Mapping</frontend_model>
                     <backend_model>Lb\MelhorEnvios\Model\Adminhtml\Attribute\Validation\Mapping</backend_model>
                 </field>

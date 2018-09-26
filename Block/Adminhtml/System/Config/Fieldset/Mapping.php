@@ -80,6 +80,6 @@ class Mapping
      */
     public function _getMeLabel()
     {
-        return [__('Length'), __('Width'), __('Height'), __('Weight')];
+        return [__('Length'), __('Width'), __('Height'), __('Weight'), __('Additional days')];
     }
 }

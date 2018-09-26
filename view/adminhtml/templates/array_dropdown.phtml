@@ -4,12 +4,14 @@
  */
 $_htmlId = $this->getHtmlId() ? $this->getHtmlId() : '_' . uniqid();
 $productCode = $block->_getAttributes();
-$sizeUnit = ['cm', 'mt'];
-$weightUnit = ['kg', 'gr'];
-$meCode = ['length','width','height', 'weight'];
+$units = [
+    'size' => ['cm', 'mt'],
+    'weight' => ['kg', 'gr'],
+    'additional_days' => ['days'],
+];
+$meCode = ['length','width','height', 'weight', 'additional_days'];
 $meLabel = $block->_getMeLabel();
 $prevValues = [];
-$unit = $sizeUnit;
 
 $prevValues = $block->_getStoredMappingValues();
 
@@ -37,7 +39,12 @@ $prevValues = $block->_getStoredMappingValues();
                             <?php endforeach; ?>
                         </select>
                     </td>
-                    <?php if ($meOption == 'weight') : $unit = $weightUnit; endif;?>
+                    <?php 
+                        $unit = $units['size'];
+                        if (isset($units[$meOption])) {
+                            $unit = $units[$meOption];
+                        }
+                    ?>
                     <td>
                         <select name="groups[melhorenvios][fields][attributesmapping][value][<?php /* @noEscape */ echo $meOption ?>][unit]">
                             <?php foreach($unit as $_u):?>

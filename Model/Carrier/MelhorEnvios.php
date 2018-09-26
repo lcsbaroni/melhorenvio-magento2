@@ -23,6 +23,8 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
      */
     protected $_logger;
 
+    protected $additionalDaysForDelivery = 0;
+
     const MIN_LENGTH = 16;
     const MIN_WIDTH = 12;
     const MIN_HEIGHT = 2;
@@ -116,7 +118,9 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
             $delivery_time = 0;
             $description = $carrier->company->name . " " .$carrier->name;
             if (property_exists($carrier, 'delivery_time')) {
-              $delivery_time = $this->getConfigData('add_days') + $carrier->delivery_time;
+              $delivery_time = ($this->additionalDaysForDelivery > 0 ? $this->additionalDaysForDelivery : $this->getConfigData('add_days'));
+              $delivery_time += $carrier->delivery_time;
+
               $description = $carrier->company->name . " " .$carrier->name
               . sprintf($this->getConfigData('text_days'), $delivery_time);
             }
@@ -141,14 +145,20 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
         $volume = 0;
         $items = $this->getAllItems($request->getAllItems());
         foreach($items as $item) {
+
             $qty = $item->getQty() ?: 1;
             $item = $item->getProduct();
 
+            $this->additionalDaysForDelivery = (
+              $this->additionalDaysForDelivery >= $this->_getShippingDimension($item, 'additional_days') ?
+              $this->additionalDaysForDelivery : $this->_getShippingDimension($item, 'additional_days')
+            );
             $volume += (
                 $this->_getShippingDimension($item, 'height') *
                 $this->_getShippingDimension($item, 'width') *
                 $this->_getShippingDimension($item, 'length')
             ) * $qty;
+
         }
 
         $root_cubic = round(pow($volume, (1/3)));
