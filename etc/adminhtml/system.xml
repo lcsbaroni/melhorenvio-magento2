@@ -38,6 +38,40 @@
                 </field>
                 <field id="specificerrmsg" translate="label" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Displayed Error Message</label>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="free_shipping_enabled" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Free Shipping Eligible</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="free_shipping_text" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Text free shipping</label>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="free_shipping_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="add_days_free_shipping" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Adding days to delivery when free shiping is enable</label>
+                    <validate>integer validate-zero-or-greater</validate>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="free_shipping_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="free_shipping_service" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Free Method</label>
+                    <source_model>Lb\MelhorEnvios\Model\System\Config\Source\Method</source_model>
+                    <tooltip>This service must be enabled</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="free_shipping_enabled">1</field>
+                    </depends>
                 </field>
             </group>
         </section>

@@ -112,6 +112,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
             $method = $this->_rateMethodFactory->create();
 
             $method->setCarrier('melhorenvios');
+
             $method->setCarrierTitle($this->getConfigData('name'));
 
             $method->setMethod($carrier->company->name . "_" . $carrier->id);
@@ -125,6 +126,17 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
               . sprintf($this->getConfigData('text_days'), $delivery_time);
             }
             $method->setMethodTitle($description);
+
+            if ($this->getConfigData('free_shipping_enabled') &&
+                $carrier->id == $this->getConfigData('free_shipping_service')
+                && $request->getFreeShipping()
+            ) {
+                $carrier->price = 0;
+                $carrier->discount = 0;
+
+                $delivery_time += $this->getConfigData('add_days_free_shipping');
+                $method->setMethodTitle($this->getConfigData('free_shipping_text') . sprintf($this->getConfigData('text_days'), $delivery_time));
+            }
 
             $amount = $carrier->price;
             $method->setPrice($amount);

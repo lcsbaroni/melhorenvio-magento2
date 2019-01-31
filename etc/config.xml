@@ -7,9 +7,11 @@
                 <sallowspecific>0</sallowspecific>
                 <model>Lb\MelhorEnvios\Model\Carrier\MelhorEnvios</model>
                 <name>Melhor Envios</name>
+                <title>Melhor Envios</title>
                 <add_days>0</add_days>
                 <type>I</type>
                 <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
+                <add_days_free_shipping>0</add_days_free_shipping>
             </melhorenvios>
         </carriers>
     </default>

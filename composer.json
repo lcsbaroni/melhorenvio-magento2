@@ -2,7 +2,7 @@
     "name": "lcsbaroni/melhorenvio-magento2",
     "description": "Modulo melhor envios magento 2",
     "type": "magento2-module",
-    "version": "0.0.5",
+    "version": "0.1.0",
     "require": {
         "php": ">=7.0"
     },
