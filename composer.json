@@ -14,5 +14,13 @@
             "Lb\\MelhorEnvios\\": ""
         }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+    "require-dev": {
+        "phpunit/phpunit": "^7.5",
+        "friendsofphp/php-cs-fixer": "^2.14"
+    },
+    "scripts": {
+        "tests": "phpunit",
+        "cs": "php-cs-fixer fix -v --dry-run"
+    }
 }

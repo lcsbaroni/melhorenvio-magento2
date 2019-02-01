@@ -1,4 +1,8 @@
 # Melhor Envio - Magento 2
+[![Build Status](https://img.shields.io/travis/lcsbaroni/melhorenvio-magento2/master.svg?style=flat-square)](https://travis-ci.org/lcsbaroni/melhorenvio-magento2)
+[![Latest Stable Version](https://img.shields.io/packagist/v/lcsbaroni/melhorenvio-magento2.svg?style=flat-square)](https://packagist.org/packages/lcsbaroni/melhorenvio-magento2)
+[![Total Downloads](https://img.shields.io/packagist/dt/lcsbaroni/melhorenvio-magento2.svg?style=flat-square)](https://packagist.org/packages/lcsbaroni/melhorenvio-magento2)
+
 Modulo do melhor envio para magento 2
 
 ---
