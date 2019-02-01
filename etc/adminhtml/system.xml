@@ -73,6 +73,15 @@
                         <field id="free_shipping_enabled">1</field>
                     </depends>
                 </field>
+                <field id="free_shipping_service_fallback" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Free Method fallback</label>
+                    <source_model>Lb\MelhorEnvios\Model\System\Config\Source\Method</source_model>
+                    <tooltip>Used if the main carrier / method is not available for this location</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="free_shipping_enabled">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>

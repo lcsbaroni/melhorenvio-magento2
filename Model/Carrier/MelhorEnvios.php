@@ -25,6 +25,8 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
 
     protected $additionalDaysForDelivery = 0;
 
+    protected $freeShippingCarrierId;
+
     const MIN_LENGTH = 16;
     const MIN_WIDTH = 12;
     const MIN_HEIGHT = 2;
@@ -56,7 +58,14 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
      */
     public function getAllowedMethods()
     {
-        return ['melhorenvios' => $this->getConfigData('name')];
+        return [
+            'Correios_1' => 'Correios - PAC',
+            'Correios_2' => 'Correios - SEDEX',
+            'Jadlog_3' => 'Jadlog - Normal',
+            'Jadlog_4' => 'Jadlog - Expresso',
+            'Shippify_5' => 'Shippify - Expresso',
+            'Jamef_7' => 'Jamef - Rodoviário',
+        ];
     }
 
     /**
@@ -104,8 +113,12 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
         /** @var \Magento\Shipping\Model\Rate\Result $result */
         $result = $this->_rateResultFactory->create();
 
+        $this->freeShippingCarrierId = $this->getConfigData('free_shipping_service');
+
         foreach ($response as $carrier) {
             if (isset($carrier->error)) {
+                $this->getFreeShippingFallback($carrier);
+
                 continue;
             }
             /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
@@ -128,7 +141,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
             $method->setMethodTitle($description);
 
             if ($this->getConfigData('free_shipping_enabled') &&
-                $carrier->id == $this->getConfigData('free_shipping_service')
+                $carrier->id == $this->freeShippingCarrierId
                 && $request->getFreeShipping()
             ) {
                 $carrier->price = 0;
@@ -146,6 +159,14 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
         }
 
         return $result;
+    }
+
+    private function getFreeShippingFallback($carrier)
+    {
+        if ($carrier->id == $this->freeShippingCarrierId) {
+            $this->freeShippingCarrierId = $this->getConfigData('free_shipping_service_fallback');
+        }
+
     }
 
     /**

@@ -13,6 +13,8 @@ Com o módulo instalado e configurado, você pode oferecer como forma de envio t
 
  - Cotação de frete (página do produto e carrinho) - OK
  - Finalizar pedido com frete do melhor envio - OK
+ - Possibilidade de dar frete grátis com base nas regras de carrinho - OK
+ - Fallback de transportadora - Caso a transportadora escolhida para frete grátis esteja desabilitada, pode se escolher outra como fallback - OK
  - Escolher agência para despachar pacote (jadlog por exemplo) - Não implementado, necessário fazer diretamente no painel do melhor envio
  - Comprar frete escolhido pelo cliente - Não implementado, necessário fazer diretamente no painel do melhor envio
  - Imprimir etiqueta de envio - Não implementado, necessário fazer diretamente no painel do melhor envio
