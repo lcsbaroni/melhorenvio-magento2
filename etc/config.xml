@@ -12,6 +12,7 @@
                 <type>I</type>
                 <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
                 <add_days_free_shipping>0</add_days_free_shipping>
+                <max_package_weight>300</max_package_weight>
             </melhorenvios>
         </carriers>
     </default>
