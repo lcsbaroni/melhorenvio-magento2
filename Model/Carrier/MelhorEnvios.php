@@ -5,9 +5,10 @@ use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Shipping\Model\Rate\Result;
 use Lb\MelhorEnvios\Service\v2\MelhorEnviosService;
 
-class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier implements
-    \Magento\Shipping\Model\Carrier\CarrierInterface
+class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline implements \Magento\Shipping\Model\Carrier\CarrierInterface
 {
+    const TRACKING_URL = "https://www.melhorrastreio.com.br/rastreio/";
+
     /**
      * @var string
      */
@@ -32,25 +33,82 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
     const MIN_HEIGHT = 2;
 
     /**
+     * MelhorEnvios constructor.
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory $rateErrorFactory
      * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Shipping\Model\Rate\ResultFactory $rateResultFactory
+     * @param \Magento\Framework\Xml\Security $xmlSecurity
+     * @param \Magento\Shipping\Model\Simplexml\ElementFactory $xmlElFactory
+     * @param \Magento\Shipping\Model\Rate\ResultFactory $rateFactory
      * @param \Magento\Quote\Model\Quote\Address\RateResult\MethodFactory $rateMethodFactory
+     * @param \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory
+     * @param \Magento\Shipping\Model\Tracking\Result\ErrorFactory $trackErrorFactory
+     * @param \Magento\Shipping\Model\Tracking\Result\StatusFactory $trackStatusFactory
+     * @param \Magento\Directory\Model\RegionFactory $regionFactory
+     * @param \Magento\Directory\Model\CountryFactory $countryFactory
+     * @param \Magento\Directory\Model\CurrencyFactory $currencyFactory
+     * @param \Magento\Directory\Helper\Data $directoryData
+     * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
+     * @param \Magento\Shipping\Helper\Carrier $carrierHelper
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $coreDate
+     * @param \Magento\Framework\Module\Dir\Reader $configReader
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Framework\Stdlib\StringUtils $string
+     * @param \Magento\Framework\Math\Division $mathDivision
+     * @param \Magento\Framework\Filesystem\Directory\ReadFactory $readFactory
+     * @param \Magento\Framework\Stdlib\DateTime $dateTime
+     * @param \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory
+     * @param \Magento\Shipping\Model\Rate\ResultFactory $rateResultFactory
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory $rateErrorFactory,
         \Psr\Log\LoggerInterface $logger,
-        \Magento\Shipping\Model\Rate\ResultFactory $rateResultFactory,
+        \Magento\Framework\Xml\Security $xmlSecurity,
+        \Magento\Shipping\Model\Simplexml\ElementFactory $xmlElFactory,
+        \Magento\Shipping\Model\Rate\ResultFactory $rateFactory,
         \Magento\Quote\Model\Quote\Address\RateResult\MethodFactory $rateMethodFactory,
+        \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory,
+        \Magento\Shipping\Model\Tracking\Result\ErrorFactory $trackErrorFactory,
+        \Magento\Shipping\Model\Tracking\Result\StatusFactory $trackStatusFactory,
+        \Magento\Directory\Model\RegionFactory $regionFactory,
+        \Magento\Directory\Model\CountryFactory $countryFactory,
+        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
+        \Magento\Directory\Helper\Data $directoryData,
+        \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
+        \Magento\Shipping\Helper\Carrier $carrierHelper,
+        \Magento\Framework\Stdlib\DateTime\DateTime $coreDate,
+        \Magento\Framework\Module\Dir\Reader $configReader,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\Stdlib\StringUtils $string,
+        \Magento\Framework\Math\Division $mathDivision,
+        \Magento\Framework\Filesystem\Directory\ReadFactory $readFactory,
+        \Magento\Framework\Stdlib\DateTime $dateTime,
+        \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory,
+        \Magento\Shipping\Model\Rate\ResultFactory $rateResultFactory,
         array $data = []
     ) {
         $this->_rateResultFactory = $rateResultFactory;
-        $this->_logger = $logger;
-        $this->_rateMethodFactory = $rateMethodFactory;
-        parent::__construct($scopeConfig, $rateErrorFactory, $logger, $data);
+
+        parent::__construct(
+            $scopeConfig,
+            $rateErrorFactory,
+            $logger,
+            $xmlSecurity,
+            $xmlElFactory,
+            $rateFactory,
+            $rateMethodFactory,
+            $trackFactory,
+            $trackErrorFactory,
+            $trackStatusFactory,
+            $regionFactory,
+            $countryFactory,
+            $currencyFactory,
+            $directoryData,
+            $stockRegistry,
+            $data
+        );
     }
 
     /**
@@ -124,7 +182,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
             /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
             $method = $this->_rateMethodFactory->create();
 
-            $method->setCarrier('melhorenvios');
+            $method->setCarrier($this->_code);
 
             $method->setCarrierTitle($this->getConfigData('name'));
 
@@ -176,7 +234,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
     protected function _createDimensions(RateRequest $request)
     {
         $volume = 0;
-        $items = $this->getAllItems($request->getAllItems());
+        $items = $this->getItems($request->getAllItems());
         foreach($items as $item) {
 
             $qty = $item->getQty() ?: 1;
@@ -215,7 +273,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
      *
      * @return array
      */
-    protected function getAllItems($allItems)
+    private function getItems($allItems)
     {
         $items = [];
         foreach ($allItems as $item) {
@@ -269,5 +327,38 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrier imple
         }
 
         return $this->service;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTrackingAvailable(){
+        return true;
+    }
+
+    /**
+     * @param string $number
+     * @return \Magento\Shipping\Model\Tracking\Result\Status
+     */
+    public function getTrackingInfo($number)
+    {
+
+        $tracking = $this->_trackStatusFactory->create();
+        $tracking->setCarrier($this->_code);
+        $tracking->setCarrierTitle($this->getConfigData('name'));
+        $tracking->setTracking($number);
+        $tracking->setUrl(self::TRACKING_URL . $number);
+
+        return $tracking;
+    }
+
+    /**
+     * @param \Magento\Framework\DataObject $request
+     * @return null;
+     */
+
+    protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
+    {
+        $this->setRequest($request);
     }
 }
