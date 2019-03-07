@@ -307,11 +307,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
     public function _getShippingDimension($item, $type)
     {
         $attributeMapped = $this->getConfigData('attributesmapping');
-
-        $attributeMapped = json_decode($attributeMapped, true);
-
-        //$attributeMapped = unserialize($attributeMapped);
-
+        $attributeMapped = json_decode($attributeMapped, true) ?: unserialize($attributeMapped);
         $dimension = 0;
         $value = $item->getData($attributeMapped[$type]['attribute_code']);
         if ($value) {
