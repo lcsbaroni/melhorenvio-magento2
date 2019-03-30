@@ -142,6 +142,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
             return false;
         }
 
+
         $function = '/api/v2/me/shipment/calculate';
         $parameters = [
             'method' => \Zend\Http\Request::METHOD_GET,
@@ -312,8 +313,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
     public function _getShippingDimension($item, $type)
     {
         $attributeMapped = $this->getConfigData('attributesmapping');
-        $attributeMapped = unserialize($attributeMapped);
-
+        $attributeMapped = json_decode($attributeMapped, true) ?: unserialize($attributeMapped);
         $dimension = 0;
         $value = $item->getData($attributeMapped[$type]['attribute_code']);
         if ($value) {
