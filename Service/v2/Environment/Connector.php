@@ -58,18 +58,34 @@ class Connector
      */
     public function doRequest($function, $parameters)
     {
-        $method = isset($parameters['method']) ? $parameters['method'] : \Zend\Http\Request::METHOD_POST;
+        try {
+            $method = isset($parameters['method']) ? $parameters['method'] : \Zend\Http\Request::METHOD_POST;
 
-        $data = json_encode($parameters['data']);
-        $this->getClient()->setMethod($method);
-        $this->getClient()->setRawBody($data);
-        $this->getClient()->setUri($parameters['host'] . $function);
+            $data = json_encode($parameters['data']);
+            $this->getClient()->setMethod($method);
+            $this->getClient()->setRawBody($data);
+            $this->getClient()->setUri($parameters['host'] . $function);
 
-        $this->logger->notice($data);
+            $this->logger->notice($data);
 
-        $response = $this->getClient()->send();
+            $response = $this->getClient()->send();
+
+        } catch( \Zend\Http\Client\Adapter\Exception\TimeoutException $e) {
+            $this->logger->error($e);
+            throw new \Exception($e->getMessage());
+        }
 
         $this->logger->notice(json_encode($response->getBody()));
+        if ($response->getStatusCode() < 200 || $response->getStatusCode() > 299) {
+            $responseErrorMessage = json_decode($response->getBody());
+
+            if (empty($responseErrorMessage) || !property_exists($responseErrorMessage, 'error')) {
+                $responseErrorMessage = new \stdClass();
+                $responseErrorMessage->error = "Melhor envios - Transaction Failed!";
+            }
+
+            throw new \Exception($responseErrorMessage->error . sprintf(' (statusCode: %s)', (int) $response->getStatusCode()));
+        }
 
         return $response->getBody();
     }

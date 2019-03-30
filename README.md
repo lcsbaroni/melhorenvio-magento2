@@ -16,9 +16,9 @@ Com o módulo instalado e configurado, você pode oferecer como forma de envio t
  - Possibilidade de dar frete grátis com base nas regras de carrinho - OK
  - Fallback de transportadora - Caso a transportadora escolhida para frete grátis esteja desabilitada, pode se escolher outra como fallback - OK
  - Rastrear pedido - Exibe o código de rastreio e link para rastreio no admin e no pedido do cliente - OK
- - Comprar frete escolhido pelo cliente - Não implementado, necessário fazer diretamente no painel do melhor envio
- - Escolher agência para despachar pacote (jadlog por exemplo) - Não implementado, necessário fazer diretamente no painel do melhor envio
- - Imprimir etiqueta de envio - Não implementado, necessário fazer diretamente no painel do melhor envio
+ - Comprar frete escolhido pelo cliente - OK
+ - Escolher agência para despachar pacote (jadlog por exemplo) - OK
+ - Imprimir etiqueta de envio - OK
 
 
 Requisitos
@@ -42,7 +42,7 @@ Navegue até o diretório raíz da sua instalação do Magento 2 e siga os segui
    - ```php bin/magento setup:upgrade```
    - ```php bin/magento deploy:mode:set production```
 
-3. Acesse a seção Lojas -> Configuração -> Vendas -> Métodos de entrega. Mapeie os atributos correspondentes a largura, altura, comprimento e peso de seus produtos, eles são utilizados para calcular o frete.
+3. Acesse a seção Lojas -> Configuração -> Vendas -> Métodos de entrega. Mapeie os atributos correspondentes a largura, altura, comprimento e peso de seus produtos, eles são utilizados para calcular o frete. Mapeie um atributo para adicionar dias a entrega de um produto específico.
 
 4. Selecione quais transportadoras você vai oferecer. Salve as alterações.
 

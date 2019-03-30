@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Shipping\Block\Adminhtml\View\Form">
+        <plugin name="Lb-melhorenvio-print-shipping-label-block" type="Lb\MelhorEnvios\Plugin\PrintShippingLabelPlugin" sortOrder="5" />
+    </type>
+
+    <preference for="Magento\Sales\Model\Order\Shipment\Track" type="Lb\MelhorEnvios\Model\Order\Shipment\Track"/>
+
+</config>

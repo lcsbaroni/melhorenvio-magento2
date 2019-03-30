@@ -11,6 +11,16 @@ class MelhorEnviosService
     protected $token;
 
     /**
+     * @var string
+     */
+    protected $environment;
+
+    /**
+     * @var string
+     */
+    protected $host;
+
+    /**
      * @var \Psr\Log\LoggerInterface
      */
     protected $logger;
@@ -23,14 +33,24 @@ class MelhorEnviosService
     /**
      * MelhorEnviosService constructor.
      * @param string $token
+     * @param string $environment
      * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(
         string $token,
+        string $environment,
         \Psr\Log\LoggerInterface $logger
     ) {
         $this->token = $token;
+        $this->environment = $environment;
         $this->logger = $logger;
+
+        $prefix = "";
+        if ($this->environment == \Lb\MelhorEnvios\Model\System\Config\Source\Environment::SANDBOX) {
+            $prefix = "sandbox.";
+        }
+
+        $this->host =  'https://'. $prefix .'melhorenvio.com.br';
     }
 
     /**
@@ -52,7 +72,7 @@ class MelhorEnviosService
      */
     public function doRequest($function, $parameters)
     {
-        $parameters['host'] = 'https://melhorenvio.com.br';
+        $parameters['host'] = $this->host;
         return $this->getConnector()->doRequest($function, $parameters);
     }
 }

@@ -9,10 +9,12 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
 {
     const TRACKING_URL = "https://www.melhorrastreio.com.br/rastreio/";
 
+    const CODE = "melhorenvios";
+
     /**
      * @var string
      */
-    protected $_code = 'melhorenvios';
+    protected $_code = self::CODE;
 
     /**
      * @var \Lb\MelhorEnvios\Service\v2\MelhorEnviosService
@@ -27,6 +29,8 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
     protected $additionalDaysForDelivery = 0;
 
     protected $freeShippingCarrierId;
+
+    protected $shippingInformation;
 
     const MIN_LENGTH = 16;
     const MIN_WIDTH = 12;
@@ -87,9 +91,11 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
         \Magento\Framework\Stdlib\DateTime $dateTime,
         \Magento\Framework\HTTP\ZendClientFactory $httpClientFactory,
         \Magento\Shipping\Model\Rate\ResultFactory $rateResultFactory,
+        \Lb\MelhorEnvios\Model\ShippingInformation $ShippingInformation,
         array $data = []
     ) {
         $this->_rateResultFactory = $rateResultFactory;
+        $this->shippingInformation = $ShippingInformation;
 
         parent::__construct(
             $scopeConfig,
@@ -323,7 +329,11 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
     public function getService() : MelhorEnviosService
     {
         if (!$this->service instanceof MelhorEnviosService) {
-            $this->service = new MelhorEnviosService($this->getConfigData('token'), $this->_logger);
+            $this->service = new MelhorEnviosService(
+                $this->getConfigData('token'),
+                $this->getConfigData('environment'),
+                $this->_logger
+            );
         }
 
         return $this->service;
@@ -342,7 +352,6 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
      */
     public function getTrackingInfo($number)
     {
-
         $tracking = $this->_trackStatusFactory->create();
         $tracking->setCarrier($this->_code);
         $tracking->setCarrierTitle($this->getConfigData('name'));
@@ -353,12 +362,268 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
     }
 
     /**
-     * @param \Magento\Framework\DataObject $request
-     * @return null;
+     * @param $taxVat
+     * @return string
      */
+    private function getCustomerTaxVat($taxVat)
+    {
+        //if customer doesn't have document, use a fake. Required for Jadlog
+        if (!$taxVat) {
+            $taxVat = '85117687183'; //fake document
+        }
 
+        return $taxVat;
+    }
+
+    /**
+     * @param array $street
+     * @return array
+     */
+    private function buildAddress(array $street) : array
+    {
+        $keys = [
+            'street',
+            'number',
+            'complement',
+            'neighborhood'
+        ];
+
+        if (sizeof($keys) == sizeof($street)) {
+            $result = array_combine($keys, $street);
+        } else {
+            $result = [
+                'street' => $street[0],
+                'number' => $street[1],
+                'complement' => '',
+                'neighborhood' => $street[2]
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $items
+     * @return float
+     */
+    private function getInsuranceValue(array $items) : float
+    {
+        $value = 5.00;
+        if ($this->getConfigData('insurance_value')) {
+            $value = 0.00;
+            foreach ($items as $item) {
+                $value += $item['price'];
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param \Magento\Framework\DataObject $request
+     * @return \Magento\Framework\DataObject
+     */
     protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
     {
-        $this->setRequest($request);
+        $data = [
+            'increment_id' => $request->getOrderShipment()->getIncrementId(),
+            'shipping_id' => $request->getOrderShipment()->getId(),
+            'package_id' => $request->getData('package_id'),
+            'tracking_number' => '',
+            'label_url' => ''
+        ];
+
+        $result = new \Magento\Framework\DataObject();
+
+        $customerTaxVat = $this->getCustomerTaxVat($request->getOrderShipment()->getOrder()->getCustomerTaxVat());
+        $shippingAddress = $request->getOrderShipment()->getOrder()->getShippingAddress();
+        $shippingAddressParsed = $this->buildAddress($shippingAddress->getStreet());
+
+        $addressFrom = explode(',', $request->getShipperAddressStreet1());
+        $addressFrom[] = $request->getShipperAddressStreet2();
+        $addressFrom = $this->buildAddress($addressFrom);
+
+        $function = '/api/v2/me/cart';
+        $parameters = [
+            'method' => \Zend\Http\Request::METHOD_POST,
+            'data' => [
+                "service" => explode('_', $request->getShippingMethod())[1],
+                "agency" => $this->getConfigData('jadlog_agency'), // id da agência de postagem (obrigatório se for JadLog)
+                "from" => [
+                    "name" => $request->getShipperContactCompanyName(),
+                    "phone" => $request->getShipperContactPhoneNumber(),
+                    "document" => strlen($this->getConfigData('taxvat')) > 11 ? '' : $this->getConfigData('taxvat'),
+                    "company_document" => strlen($this->getConfigData('taxvat')) < 11 ? '' : $this->getConfigData('taxvat'), // cnpj (obrigatório se não for Correios)
+                    "state_register" => $this->getConfigData('state_register'), // inscrição estadual (obrigatório se não for Correios) pode ser informado "isento"
+                    "postal_code" => $request->getShipperAddressPostalCode(),
+                    "address" => $addressFrom['street'],
+                    "complement" => $addressFrom['complement'],
+                    "number" => $addressFrom['number'],
+                    "district" => $addressFrom['neighborhood'],
+                    "city" => $request->getShipperAddressCity(),
+                    "state_abbr" => $request->getShipperAddressStateOrProvinceCode(),
+                    "country_id" => $request->getShipperAddressCountryCode(),
+                ],
+                "to" => [
+                    "name" => $request->getRecipientContactPersonName(),
+                    "phone" => $request->getRecipientContactPhoneNumber(), // telefone com ddd (obrigatório se não for Correios)
+                    "email" => $request->getData('recipient_email'),
+                    "document" => $customerTaxVat, // obrigatório se for transportadora e não for logística reversa
+                    "company_document" => "", // (opcional) (a menos que seja transportadora e logística reversa)
+                    "state_register" => "", // (opcional) (a menos que seja transportadora e logística reversa)
+                    "address" => $shippingAddressParsed['street'],
+                    "complement" => $shippingAddressParsed['complement'],
+                    "number" => $shippingAddressParsed['number'],
+                    "district" => $shippingAddressParsed['neighborhood'],
+                    "city" => $request->getRecipientAddressCity(),
+                    "state_abbr" => $request->getRecipientAddressStateOrProvinceCode(),
+                    "country_id" => $request->getRecipientAddressCountryCode(),
+                    "postal_code" => $request->getRecipientAddressPostalCode(),
+                ],
+                "products" => $this->getListProducts($request->getData('package_items')),
+                "package" => $this->getShippingPackages($request->getData('package_params')),
+                "options" => [ // opções
+                    "insurance_value" => $this->getInsuranceValue($request->getPackageItems()), // valor declarado/segurado
+                    "receipt" => (bool) $this->getConfigData('receipt'), // aviso de recebimento
+                    "own_hand" => (bool) $this->getConfigData('own_hand'), // mão pŕopria
+                    "collect" => false, // coleta
+                    "reverse" => false, // logística reversa (se for reversa = true, ainda sim from será o remetente e to o destinatário)
+                    "non_commercial" => true, // envio de objeto não comercializável (flexibiliza a necessidade de pessoas júridicas para envios com transportadoras como Latam Cargo, porém se for um envio comercializável a mercadoria pode ser confisca pelo fisco)
+                ]
+            ]
+        ];
+
+        $this->_prepareShipmentRequest($request);
+
+        try {
+            $response = $this->getService()->doRequest($function, $parameters);
+            $response = json_decode($response);
+        } catch (\Exception $e) {
+            return $result->setErrors("Não foi possível adicionar a etiqueta ao carrinho - " . $e->getMessage());
+        }
+
+        $shippingOrderID = $response->id;
+
+        $function = "/api/v2/me/shipment/checkout";
+        $parameters = [
+            'method' => \Zend\Http\Request::METHOD_POST,
+            'data' => [
+                "orders" => [ // lista de etiquetas (opcional)
+                    $shippingOrderID
+                ],
+                "wallet" => $response->price
+            ]
+        ];
+
+        try {
+            $response = $this->getService()->doRequest($function, $parameters);
+            $response = json_decode($response);
+        } catch (\Exception $e) {
+            return $result->setErrors("Não foi possível comprar a etiqueta - " . $e->getMessage());
+        }
+
+        $function = "/api/v2/me/shipment/generate";
+        $parameters = [
+            'method' => \Zend\Http\Request::METHOD_POST,
+            'data' => [
+                "orders" => [
+                    $shippingOrderID
+                ]
+            ]
+        ];
+
+        try {
+            $response = $this->getService()->doRequest($function, $parameters);
+            $response = json_decode($response);
+        } catch (\Exception $e) {
+            return $result->setErrors("Não foi possível gerar a etiqueta - " . $e->getMessage());
+        }
+
+        $function = "/api/v2/me/shipment/print";
+        $parameters = [
+            'method' => \Zend\Http\Request::METHOD_POST,
+            'data' => [
+                "mode" => "public",
+                "orders" => [
+                    $shippingOrderID
+                ]
+            ]
+        ];
+
+        try {
+            $response = $this->getService()->doRequest($function, $parameters);
+            $response = json_decode($response);
+        } catch (\Exception $e) {
+            return $result->setErrors("Não foi possível imprimir a etiqueta - " . $e->getMessage());
+        }
+
+        $labelUrl = $response->url;
+
+        $function = "/api/v2/me/shipment/tracking";
+        $parameters = [
+            'method' => \Zend\Http\Request::METHOD_POST,
+            'data' => [
+                "orders" => [
+                    $shippingOrderID
+                ]
+            ]
+        ];
+
+        try {
+            $response = $this->getService()->doRequest($function, $parameters);
+            $response = json_decode($response);
+        } catch (\Exception $e) {
+            return $result->setErrors("Não foi possível encontrar o tracking - " . $e->getMessage());
+        }
+
+        $result->setShippingLabelContent($labelUrl);
+        $result->setTrackingNumber($response->$shippingOrderID->tracking);
+        $data['tracking_number'] = $response->$shippingOrderID->tracking;
+        $data['label_url'] = $labelUrl;
+
+        $this->shippingInformation->setData($data)->save();
+
+        return $result;
+    }
+
+    /**
+     * @param array $packageItems
+     * @return array
+     */
+    private function getListProducts(array $packageItems) : array
+    {
+        $products = [];
+
+        // lista de produtos para preenchimento da declaração de conteúdo
+        foreach ($packageItems as $item) {
+            $products[] = [
+                "name" => $item['name'], // nome do produto (max 255 caracteres)
+                "quantity" => $item['qty'], // quantidade de items desse produto
+                "unitary_value" => $item['price'], // R$ 4,50 valor do produto
+                "weight" => $item['weight'], // peso 1kg, opcional
+            ];
+        }
+
+        return $products;
+    }
+
+    /**
+     * @param $packageParams
+     * @return array
+     */
+    private function getShippingPackages($packageParams) : array
+    {
+        $package = [];
+
+        foreach ($packageParams as $package) {
+            $package = [
+                "weight" => $package['weight'],
+                "width" => $package['width'],
+                "height" => $package['height'],
+                "length" => $package['length']
+            ];
+        }
+
+        return $package;
     }
 }

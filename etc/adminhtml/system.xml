@@ -14,6 +14,16 @@
                 <field id="token" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API Token</label>
                 </field>
+                <field id="environment" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Environment</label>
+                    <source_model>Lb\MelhorEnvios\Model\System\Config\Source\Environment</source_model>
+                </field>
+                <field id="taxvat" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>CPF / CNPJ</label>
+                </field>
+                <field id="state_register" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>State register</label>
+                </field>
                 <field id="attributesmapping" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Product attributes mapping</label>
                     <frontend_model>Lb\MelhorEnvios\Block\Adminhtml\System\Config\Fieldset\Mapping</frontend_model>
@@ -81,6 +91,31 @@
                         <field id="active">1</field>
                         <field id="free_shipping_enabled">1</field>
                     </depends>
+                </field>
+                <field id="insurance_value" translate="select" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insurance value</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="receipt" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Receipt</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="own_hand" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Own hand</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="jadlog_agency" translate="label" type="select" sortOrder="14" showInDefault="1" showInWebsite="1">
+                    <label>Jadlog Agency</label>
+                    <source_model>Lb\MelhorEnvios\Model\System\Config\Source\AgencyJadlog</source_model>
                 </field>
             </group>
         </section>

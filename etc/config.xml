@@ -5,13 +5,18 @@
             <melhorenvios>
                 <active>1</active>
                 <sallowspecific>0</sallowspecific>
+                <environment>sandbox</environment>
                 <model>Lb\MelhorEnvios\Model\Carrier\MelhorEnvios</model>
                 <name>Melhor Envios</name>
                 <title>Melhor Envios</title>
                 <add_days>0</add_days>
                 <type>I</type>
+                <text_days> - Average %d work days</text_days>
                 <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
                 <add_days_free_shipping>0</add_days_free_shipping>
+                <insurance_value>0</insurance_value>
+                <receipt>0</receipt>
+                <own_hand>0</own_hand>
                 <max_package_weight>300</max_package_weight>
             </melhorenvios>
         </carriers>
