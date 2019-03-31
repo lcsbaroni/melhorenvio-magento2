@@ -14,6 +14,7 @@
                 <text_days> - Average %d work days</text_days>
                 <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
                 <add_days_free_shipping>0</add_days_free_shipping>
+                <free_shipping_enabled>0</free_shipping_enabled>
                 <insurance_value>0</insurance_value>
                 <receipt>0</receipt>
                 <own_hand>0</own_hand>

@@ -35,6 +35,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
     const MIN_LENGTH = 16;
     const MIN_WIDTH = 12;
     const MIN_HEIGHT = 2;
+    const INSURANCE_VALUE = 5.00;
 
     /**
      * MelhorEnvios constructor.
@@ -142,7 +143,6 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
             return false;
         }
 
-
         $function = '/api/v2/me/shipment/calculate';
         $parameters = [
             'method' => \Zend\Http\Request::METHOD_GET,
@@ -159,9 +159,9 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
               ],
               "package" => $this->_createDimensions($request),
               "options" => [
-                "insurance_value" => $request->getPackageValue(),
-                "receipt" => false,
-                "own_hand" => false,
+                "insurance_value" => (bool) $this->getConfigData('insurance_value') ? $request->getPackageValue() : self::INSURANCE_VALUE, // valor declarado/segurado
+                "receipt" => (bool) $this->getConfigData('receipt'), // aviso de recebimento
+                "own_hand" => (bool) $this->getConfigData('own_hand'), // mão pŕopria
                 "collect" => false
               ],
               "services" => $this->getConfigData('availablemethods')
@@ -408,7 +408,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
      */
     private function getInsuranceValue(array $items) : float
     {
-        $value = 5.00;
+        $value = self::INSURANCE_VALUE;
         if ($this->getConfigData('insurance_value')) {
             $value = 0.00;
             foreach ($items as $item) {
