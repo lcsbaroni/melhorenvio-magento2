@@ -35,7 +35,8 @@ class Connector
             $this->client->setOptions($options);
             $this->client->setHeaders([
                 'Authorization' => 'Bearer ' . $this->token,
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
             ]);
         }
 
@@ -79,12 +80,18 @@ class Connector
         if ($response->getStatusCode() < 200 || $response->getStatusCode() > 299) {
             $responseErrorMessage = json_decode($response->getBody());
 
-            if (empty($responseErrorMessage) || !property_exists($responseErrorMessage, 'error')) {
+            if (empty($responseErrorMessage) || !property_exists($responseErrorMessage, 'message')) {
                 $responseErrorMessage = new \stdClass();
-                $responseErrorMessage->error = "Melhor envios - Transaction Failed!";
+                $responseErrorMessage->message = "Melhor envios - Transaction Failed!";
             }
 
-            throw new \Exception($responseErrorMessage->error . sprintf(' (statusCode: %s)', (int) $response->getStatusCode()));
+            $errorsMessages = "";
+            if (property_exists($responseErrorMessage, 'errors')) {
+                foreach ($responseErrorMessage->errors as $error)
+                $errorsMessages .= implode("\n", $error);
+            }
+
+            throw new \Exception($responseErrorMessage->message . $errorsMessages . sprintf(' (statusCode: %s)', (int) $response->getStatusCode()));
         }
 
         return $response->getBody();

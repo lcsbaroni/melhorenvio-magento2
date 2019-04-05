@@ -5,6 +5,7 @@
             <melhorenvios>
                 <active>1</active>
                 <sallowspecific>0</sallowspecific>
+                <token>your_token</token>
                 <environment>sandbox</environment>
                 <model>Lb\MelhorEnvios\Model\Carrier\MelhorEnvios</model>
                 <name>Melhor Envios</name>
