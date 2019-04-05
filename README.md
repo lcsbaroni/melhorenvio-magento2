@@ -1,5 +1,6 @@
 # Melhor Envio - Magento 2
 [![Build Status](https://img.shields.io/travis/lcsbaroni/melhorenvio-magento2/master.svg?style=flat-square)](https://travis-ci.org/lcsbaroni/melhorenvio-magento2)
+[![CircleCI](https://circleci.com/gh/lcsbaroni/melhorenvio-magento2.svg?style=svg)](https://circleci.com/gh/lcsbaroni/melhorenvio-magento2)
 [![Latest Stable Version](https://img.shields.io/packagist/v/lcsbaroni/melhorenvio-magento2.svg?style=flat-square)](https://packagist.org/packages/lcsbaroni/melhorenvio-magento2)
 [![Total Downloads](https://img.shields.io/packagist/dt/lcsbaroni/melhorenvio-magento2.svg?style=flat-square)](https://packagist.org/packages/lcsbaroni/melhorenvio-magento2)
 
@@ -19,34 +20,10 @@ Com o módulo instalado e configurado, você pode oferecer como forma de envio t
  - Comprar frete escolhido pelo cliente - OK
  - Escolher agência para despachar pacote (jadlog por exemplo) - OK
  - Imprimir etiqueta de envio - OK
+ - Carta de agradecimento de pedido - É gerado uma carta de agradecimento com os dados do pedido para ser enviada dentro da caixa.
 
-
-Requisitos
-----------
----
- - [Magento] Community 2.1.* | 2.2.*
- - [PHP] 7.*
-
-Instalação
------------
-> É altamente recomendado que você tenha um ambiente de testes para validar alterações e atualizações antes de atualizar sua loja em produção.
-
-Navegue até o diretório raíz da sua instalação do Magento 2 e siga os seguintes passos:
-
-> A instalação do módulo é feita utilizando o Composer. Para baixar e instalar o Composer no seu ambiente acesse https://getcomposer.org/download/ e caso tenha dúvidas de como utilizá-lo consulte a [documentação oficial do Composer](https://getcomposer.org/doc/).
-
-1. Instale via packagist 
-   - ```composer require lcsbaroni/melhorenvio-magento2```
-       - Neste momento, podem ser solicitadas suas credenciais de autenticação do Magento. Caso tenha alguma dúvida, há uma descrição de como proceder nesse [link da documentação oficial](http://devdocs.magento.com/guides/v2.0/install-gde/prereq/connect-auth.html).
-2. Execute os comandos:
-   - ```php bin/magento setup:upgrade```
-   - ```php bin/magento deploy:mode:set production```
-
-3. Acesse a seção Lojas -> Configuração -> Vendas -> Métodos de entrega. Mapeie os atributos correspondentes a largura, altura, comprimento e peso de seus produtos, eles são utilizados para calcular o frete. Mapeie um atributo para adicionar dias a entrega de um produto específico.
-
-4. Selecione quais transportadoras você vai oferecer. Salve as alterações.
-
-5. Pode ser necessário atualizar o cache da sua loja ao finalizar o processo.
+Veja nossa [wiki](https://github.com/lcsbaroni/melhorenvio-magento2/wiki) para mais detalhes 
+-------------
 
 Contribuições
 -------------
