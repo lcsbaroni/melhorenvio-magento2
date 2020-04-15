@@ -197,7 +197,7 @@ class MelhorEnvios extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline
             $delivery_time = 0;
             $description = $carrier->company->name . " " .$carrier->name;
             if (property_exists($carrier, 'delivery_time')) {
-              $delivery_time = ($this->additionalDaysForDelivery > 0 ? $this->additionalDaysForDelivery : $this->getConfigData('add_days'));
+              $delivery_time = ($this->additionalDaysForDelivery > $this->getConfigData('add_days') ? $this->additionalDaysForDelivery : $this->getConfigData('add_days'));
               $delivery_time += $carrier->delivery_time;
 
               $description = $carrier->company->name . " " .$carrier->name

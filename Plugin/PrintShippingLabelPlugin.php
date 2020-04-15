@@ -16,7 +16,7 @@ class PrintShippingLabelPlugin
                 ->addFieldToFilter('shipping_id', $subject->getShipment()->getId())
                 ->fetchItem();
 
-            $url = 'https://melhorenvios.com.br';
+            $url = 'https://melhorenvio.com.br';
             if ($package) {
                 $url = $package->getLabelUrl();
             }
